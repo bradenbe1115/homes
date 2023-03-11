@@ -2,7 +2,16 @@ from typing import Tuple
 
 URL_ROOT = "https://www.airbnb.com/s/{city}--{state}--{country}/homes"
 CHECKIN_CHECKOUT_ROOT = "checkin={check_in}&checkout={check_out}"
-VALID_KWARGS = ['adults','children','infants']
+NUM_KWARGS = ['adults','children','infants','min_bedrooms','min_beds']
+CAT_KWARGS = ['property_type']
+VALID_KWARGS = NUM_KWARGS + CAT_KWARGS
+
+property_type_map = {
+    'House':1,
+    'Apartment':3,
+    'Guesthouse':2,
+    'Hotel':4
+}
 
 
 class SearchQuery:
@@ -48,7 +57,12 @@ class SearchQuery:
 
         kw_params = ""
         for arg, value in self.kwargs.items():
-            kw_params += f"{arg.lower()}={value}"
+            
+            if arg == 'property_type':
+                kw_params += f"&l2_property_type_ids%5B%5D={property_type_map[value]}"
+            
+            else:
+                kw_params += f"&{arg.lower()}={value}"
 
         self.kw_params = kw_params
     
@@ -102,6 +116,17 @@ class SearchQuery:
     
     def _validate_kw_inputs(self) -> None:
 
-        for arg in self.kwargs:
+        for arg, value in self.kwargs.items():
             if arg.lower() not in VALID_KWARGS:
                 raise Exception(f"{arg} is not a valid argument")
+            
+            if arg in NUM_KWARGS and type(value) != int:
+                if type(value) == str:
+                    if value.isdigit():
+                        pass
+                    else:
+                        raise Exception(f"{arg} is required to be an integer")
+                    
+            if arg == 'property_type':
+                if value not in list(property_type_map.keys()):
+                    raise Exception(f"{arg} only takes the values {*list(property_type_map.keys()),}")

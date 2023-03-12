@@ -1,11 +1,7 @@
-from homes.foundation.airbnb.common.SearchQuery import SearchQuery
+from homes.foundation.search_query import AIRBNBSearchQuery
 
-def test_search_queries(city: str, state: str, country: str, check_in: str, check_out: str, **kwargs):
-    sq = SearchQuery(city, state, country, **kwargs)
-    return sq.get_query(check_in, check_out)
+assert AIRBNBSearchQuery(city='Detroit',state='Michigan',country='United States',check_in='2023-03-25',check_out='2023-04-01').query == 'https://www.airbnb.com/s/Detroit--Michigan--United-States/homes?checkin=2023-03-25&checkout=2023-04-01'
 
-assert test_search_queries('Detroit','Michigan','United States','2023-03-25','2023-04-01') == 'https://www.airbnb.com/s/Detroit--Michigan--United-States/homes?checkin=2023-03-25&checkout=2023-04-01'
+assert AIRBNBSearchQuery(city='Detroit',state='Michigan',country='United States',check_in='2023-03-25',check_out='2023-04-01',adults=2).query == 'https://www.airbnb.com/s/Detroit--Michigan--United-States/homes?checkin=2023-03-25&checkout=2023-04-01&adults=2'
 
-assert test_search_queries('Detroit','Michigan','United States','2023-03-25','2023-04-01',adults=2) == 'https://www.airbnb.com/s/Detroit--Michigan--United-States/homes?checkin=2023-03-25&checkout=2023-04-01&adults=2'
-
-print(test_search_queries('Detroit','Michigan','United States','2023-03-25','2023-04-01',property_type='House'))
+print(AIRBNBSearchQuery(city='Detroit',state='Michigan',country='United States',check_in='2023-03-25',check_out='2023-04-01',adults=2,property_types=['House','Apartment']).query)

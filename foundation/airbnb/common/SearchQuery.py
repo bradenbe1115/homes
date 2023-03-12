@@ -1,132 +1,121 @@
 from typing import Tuple
 
-URL_ROOT = "https://www.airbnb.com/s/{city}--{state}--{country}/homes"
-CHECKIN_CHECKOUT_ROOT = "checkin={check_in}&checkout={check_out}"
-NUM_KWARGS = ['adults','children','infants','min_bedrooms','min_beds']
-CAT_KWARGS = ['property_type']
-VALID_KWARGS = NUM_KWARGS + CAT_KWARGS
+#TODO: abstract search query class
 
-property_type_map = {
+PROPERTY_TYPE_MAP = {
     'House':1,
     'Apartment':3,
     'Guesthouse':2,
     'Hotel':4
 }
 
-
 class SearchQuery:
-    def __init__(self, city: str, state: str, country: str, **kwargs):
+
+    URL_ROOT = "https://www.airbnb.com/s/{city}--{state}--{country}/homes"
+    CHECK_IN_CHECK_OUT_URL_ROOT = "checkin={check_in}&checkout={check_out}"
+    URL_EXCLUDE_ATTRIBUTES = ['_city','_state','_country','check_in','check_out']
+    
+    def __init__(
+            self, 
+            city: str, 
+            state: str, 
+            country: str, 
+            check_in: str,
+            check_out: str,
+            adults: int = None,
+            children: int = None,
+            infants: int = None,
+            min_bedrooms: int = None,
+            min_beds: int = None,
+            property_types: list = None):
+        
         self.city = city
         self.state = state
         self.country = country
-        self.kwargs = kwargs
-
-        self._validate_inputs()
-        self._validate_kw_inputs()
-        self._inputs_formatter()
-        self._set_base_url()
-        self._set_kw_params()
-        return
-
-    def get_query(self,check_in: str, check_out: str) -> str:
-        """
-        Function returns formatted url query to use for AirBnB listings based on class properties
-
-        Returns:
-            full_url (str): query url for listings in specified area and with specified parameters
-        """
-        
-        base_url_dates = self.base_url + '?' + CHECKIN_CHECKOUT_ROOT.format(check_in=check_in,check_out=check_out)
-        full_url = base_url_dates + self.kw_params
-
-        return full_url
-    
-    def _set_base_url(self) -> None:
-        """
-            Class method to set base url for search query. Inputs formatted address keys to root url.    
-        """
-
-        self.base_url = URL_ROOT.format(city=self.city, state=self.state, country=self.country)
+        self.check_in = check_in
+        self.check_out = check_out
+        self.adults = adults
+        self.children = children
+        self.infants = infants
+        self.min_bedrooms = min_bedrooms
+        self.min_beds = min_beds
+        self.l2_property_type_ids = property_types
 
         return
     
-    def _set_kw_params(self) -> None:
-        """
-            Class method to set keyword params for search url
-        """
-
-        kw_params = ""
-        for arg, value in self.kwargs.items():
-            
-            if arg == 'property_type':
-                kw_params += f"&l2_property_type_ids%5B%5D={property_type_map[value]}"
-            
-            else:
-                kw_params += f"&{arg.lower()}={value}"
-
-        self.kw_params = kw_params
+    @property
+    def city(self):
+        return self._city
     
-    def _validate_inputs(self) -> Tuple[int, str]:
-        """
-            Internal class method to do some quick validation on inputs
+    @city.setter
+    def city(self, value):
+        self._city = str(value).replace(" ","-")
 
-            Returns:
-                result_code (int): code to indicate if validation was successful (0 if successful)
-                result_msg (str): Message to indicate result of validation process or errors if applicable
-        """
-
-        if self._state_format_check() != 0:
-            raise Exception("State Abbreviated")
-
-        return 0, "Success"
+    @property
+    def state(self):
+        return self._state
     
-    def _state_format_check(self) -> int:
-        """
-            Internal method to check if state name in right format i.e. not abbreviated
+    @state.setter
+    def state(self, value):
 
-            Returns:
-                result_code (int): 0 if success, 1 if failed
-        """
-
-        if len(self.state) <= 2:
-            return 1
+        if len(str(value)) <= 2:
+            raise Exception("State Abbreviated - Search Query class only accepts full state names")
         
         else:
-            return 0
-        
-    def _clean_spaces(self) -> None:
-        """
-            Replaces spaces with hypens for necessary fields
-        """
-        self.city = self.city.replace(" ","-")
-        self.state = self.state.replace(" ","-")
-        self.country = self.country.replace(" ","-")
+            self._state = str(value).replace(" ","-")
 
-        return
-
-
-    def _inputs_formatter(self) -> None:
-        """
-            Formats city, state, and country strings correctly for use in query string         
-        """
-
-        self._clean_spaces()
-
-        return
+    @property
+    def country(self):
+        return self._country
     
-    def _validate_kw_inputs(self) -> None:
+    @country.setter
+    def country(self, value):
+        self._country = str(value).replace(" ","-")
 
-        for arg, value in self.kwargs.items():
-            if arg.lower() not in VALID_KWARGS:
-                raise Exception(f"{arg} is not a valid argument")
+    @property
+    def l2_property_type_ids(self):
+        return self._l2_property_type_ids
+    
+    @l2_property_type_ids.setter
+    def l2_property_type_ids(self, value):
+        
+        if value == None:
+            self._l2_property_type_ids = None
+            return
+
+        mapped_property_types = []
+        for property_type in value:
             
-            if arg in NUM_KWARGS and type(value) != int:
-                if type(value) == str:
-                    if value.isdigit():
-                        pass
-                    else:
-                        raise Exception(f"{arg} is required to be an integer")
+            if property_type not in list(PROPERTY_TYPE_MAP.keys()):
+                raise Exception(f"Property type only takes the values {*list(PROPERTY_TYPE_MAP.keys()),}")
+            
+            else:
+                mapped_property_types.append(PROPERTY_TYPE_MAP[property_type])
+        
+        self._l2_property_type_ids = mapped_property_types
+    
+    @property
+    def query(self):
+
+        query = self.URL_ROOT.format(city=self.city, state=self.state, country=self.country)
+        query += ('?' + self.CHECK_IN_CHECK_OUT_URL_ROOT.format(check_in = self.check_in, check_out = self.check_out))
+        
+        params = [x for x in self.__dict__.keys() if x not in self.URL_EXCLUDE_ATTRIBUTES and self.__dict__[x] != None]
+        
+        for param in params:
+
+            param_url_name = param if param[0] != "_" else param[1:]
+
+            if type(self.__dict__[param]) == list:
+                for value in self.__dict__[param]:
                     
-            if arg == 'property_type':
-                if value not in list(property_type_map.keys()):
-                    raise Exception(f"{arg} only takes the values {*list(property_type_map.keys()),}")
+                    query += f'&{param_url_name}={value}'
+            else:
+                query += f'&{param_url_name}={self.__dict__[param]}'
+        
+
+        return query
+                
+
+
+    

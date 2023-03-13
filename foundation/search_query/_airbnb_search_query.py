@@ -11,6 +11,20 @@ PROPERTY_TYPE_MAP = {
 }
 
 class AIRBNBSearchQuery(BaseSearchQuery):
+    """
+        Search query domain object built to work specifically with AirBnB website
+
+        Object takes same parameters as BaseSearchQuery as well as additional parameters specificly implemented for AirBnB
+
+        Args:
+            adults (int): number of adults for booking
+            children (int): number of children for booking
+            infants (int): number of infants for booking
+            min_bedrooms (int): minimum number of bedrooms for booking
+            min_beds (int): minimum number of beds for booking
+            property_types (list): a list of valid property type names
+
+    """
 
     LOCATION_URL_ROOT = "https://www.airbnb.com/s/{city}--{state}--{country}/homes"
     CHECK_IN_CHECK_OUT_URL_ROOT = "?checkin={check_in}&checkout={check_out}"
@@ -31,9 +45,6 @@ class AIRBNBSearchQuery(BaseSearchQuery):
             property_types: list = None):
         
         super().__init__(city=city, state=state, country=country, check_in=check_in, check_out=check_out)
-        self.city = city
-        self.state = state
-        self.country = country
         self.check_in = check_in
         self.check_out = check_out
         self.adults = adults

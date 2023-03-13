@@ -2,6 +2,20 @@
 
 
 class BaseSearchQuery:
+    """
+        Base class to implement the domain object of a search query. 
+        Search query objects will need to be able to take in site-specific search parameters and build an url query that will be used in downstream objects.
+
+        Specific implementation will vary based on the site in question. Each specific abstraction should override the default query method.
+
+        Args:
+
+            city (str): city to search for properties in
+            state (str): state to search for properties in
+            country (str): country to search for properties in
+            check_in (str): date for first day to search
+            check_out (str): date for last day to search
+    """
 
     LOCATION_URL_ROOT = "{city}--{state}--{country}"
     CHECK_IN_CHECK_OUT_URL_ROOT = "{check_in}--{check_out}"

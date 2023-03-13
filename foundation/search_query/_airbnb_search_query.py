@@ -14,7 +14,9 @@ class AIRBNBSearchQuery(BaseSearchQuery):
     """
         Search query domain object built to work specifically with AirBnB website
 
-        Object takes same parameters as BaseSearchQuery as well as additional parameters specificly implemented for AirBnB
+        Object takes same arguments as BaseSearchQuery as well as additional arguments specificly implemented for AirBnB
+
+        All site specific arguments are optional
 
         Args:
             adults (int): number of adults for booking
